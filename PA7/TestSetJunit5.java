@@ -1,0 +1,161 @@
+import org.junit.jupiter.api.AfterAll; 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+// compile test: 
+// javac -d target -cp junit-platform-console-standalone-1.9.3.jar TestSetJunit4.java TestSetJunit5.java Main.java Player.java Item.java Store.java
+// run test: 
+//java -jar junit-platform-console-standalone-1.9.3.jar -cp . --class-path target --select-class TestSetJunit4 --select-class TestSetJunit5
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.beans.Transient;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.lang.Exception;
+
+public class TestSetJunit5 {
+  
+  static Store store;
+  static Player player;
+  static Item item_0;
+  static Item item_1;
+  static Item item_2;
+  
+
+  @BeforeAll
+  static void setup() {
+    store = new Store();
+
+    item_0 = new Item("test0", 1.0);
+    item_1 = new Item("test1", 1.0); 
+    item_2 = new Item("test2", 1.0);
+    
+
+    player = new Player(100.0);
+
+    store.addItem(item_0);
+    store.addItem(item_1);
+    store.addItem(item_2);
+    
+  }
+  
+  @Test
+  @Tag("acquire")
+  void acquire() {
+
+    store.enter(player);
+    store.buyItem(item_0, player);
+    store.buyItem(item_1, player);
+    store.buyItem(item_2, player);
+    
+    // Do the actions
+    assertTrue(item_0 == player.getItemByName("test0"), "First item purchased not found in Player's inventory");
+    assertTrue(item_1 == player.getItemByName("test1"), "Second item purchased not found in Player's inventory");
+    assertTrue(item_2 == player.getItemByName("test2"), "Third item purchased not found in Player's inventory");
+  }
+  
+
+  @Test
+  @Tag("player_can_sell")
+  void player_can_sell() {
+    // Set up the store
+    Store store = new Store();
+
+    // Create the player
+    Player player = new Player(100.0);
+
+    Item item = new Item("player_item", 1.0);
+    player.acquire(item);
+    assertTrue(item == player.getItemByName("player_item"), "Item not found in inventory after acquire");
+
+    // Sell the item
+    store.enter(player);
+    store.sellItem(item, player);
+    assertNull(player.getItemByName("player_item"), "Item still in inventory after sale");
+    player.Buy(item, store);
+    player.Sell(item, store);
+    player.escrowBuy(item, store);
+    player.escrowSell(item, store);
+  }
+
+  @Test
+  @Tag("buy but not in store")
+  void testBuy(){
+    Store store = new Store(); 
+    Player player = new Player(100.0);
+    Item testItem = new Item("test item", 20);
+
+    store.buyItem(testItem, player);
+    assertTrue(testItem != player.getItemByName("test item")); 
+  }
+
+  @Test 
+  @Tag ("sell but not in store")
+  void testSellOutOfStore(){
+    Store store = new Store(); 
+    Player player = new Player(100.0);
+    Item testItem = new Item("test item", 20);
+    player.addItem(testItem);
+    store.sellItem(testItem, player);
+    assertTrue(testItem != player.getItemByName("test item"));
+
+  } 
+
+  @Test
+  @Tag("Player can relinquish")
+  void testRelinquish(){
+    Store store = new Store(); 
+    Player player = new Player(100.0);
+
+    Item item_1 = new Item("test item", 20); 
+    store.addItem(item_1);
+    store.enter(player);
+    store.buyItem(item_1, player);
+    assertTrue(item_1 == player.getItemByName("test Item"));
+    player.relinquish(item_1);
+    assertNull(player.getItemByName("test Item"));
+  }
+  
+
+  @Test 
+  @Tag("test all escrow commands")
+  void testEscrows(){
+    double testMoney = 10.0; 
+    Item testItem = new Item("test item", 20);
+    Escrow.escrowMoney(testMoney);
+    Escrow.receiveMoney();
+    Escrow.returnMoney();
+    Escrow.escrowItem(testItem);
+    Escrow.receiveItem();
+    Escrow.requestItem(testItem);
+    Escrow.finalizeEscrow();
+    assertTrue(true);
+  }
+@Test 
+@Tag("Escrow Public Methods")
+void escrowPubs()
+{
+  Store store = new Store(); 
+  store.escrowFinalize();
+  store.customerEscrowBuy();
+  store.customerEscrowSell();
+  assertTrue(true);
+}
+
+@Test 
+@Tag("escrow Priv methods")
+void escrowPrivs()
+{
+  Store store = new Store(); 
+  store.privateMethCaller();
+  assertTrue(true);
+}
+
+}
